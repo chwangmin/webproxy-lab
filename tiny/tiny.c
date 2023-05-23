@@ -11,9 +11,9 @@
 void doit(int fd);
 void read_requesthdrs(rio_t *rp);
 int parse_uri(char *uri, char *filename, char *cgiargs);
-void serve_static(int fd, char *filename, int filesize);
+void serve_static(int fd, char *filename, int filesize, char *method);
 void get_filetype(char *filename, char *filetype);
-void serve_dynamic(int fd, char *filename, char *cgiargs);
+void serve_dynamic(int fd, char *filename, char *cgiargs, char *method);
 void clienterror(int fd, char *cause, char *errnum, char *shortmsg,
                  char *longmsg);
 
@@ -61,6 +61,7 @@ void doit(int fd) {
     return;
   }
 
+
   read_requesthdrs(&rio); 
 
   /* Parse URI from GET request */
@@ -75,14 +76,14 @@ void doit(int fd) {
       clienterror(fd, filename, "403", "Forbidden", "Tiny couldn't read the file");
       return;
     }
-    serve_static(fd, filename, sbuf.st_size);
+    serve_static(fd, filename, sbuf.st_size, method);
   }
   else { /* Serve dynamic content */
     if (!(S_ISREG(sbuf.st_mode)) || !(S_IXUSR & sbuf.st_mode)) { 
       clienterror(fd, filename, "403", "Forbidden", "Tiny couldn't run the CGI program"); 
       return;
     }
-    serve_dynamic(fd, filename, cgiargs);
+    serve_dynamic(fd, filename, cgiargs, method);
   }  
 }
 
@@ -96,7 +97,7 @@ void clienterror(int fd, char *cause, char *errnum, char *shortmsg, char *longms
   sprintf(body, "%s%s: %s\r\n", body, errnum, shortmsg);
   sprintf(body, "%s<p>%s: %s\r\n", body, longmsg, cause);
   sprintf(body, "%s<hr><em>The Tiny Web Server</em>\r\n", body);
-
+  
   /* Print the HTTP response */
   sprintf(buf, "HTTP/1.1 %s %s\r\n", errnum, shortmsg);
   Rio_writen(fd, buf, strlen(buf));
@@ -178,7 +179,7 @@ int parse_uri(char *uri, char *filename, char *cgiargs)
   }
 }
 
-void serve_static(int fd, char *filename, int filesize)
+void serve_static(int fd, char *filename, int filesize, char *method)
 {
   int srcfd;
   char *srcp, filetype[MAXLINE], buf[MAXBUF];
@@ -196,7 +197,6 @@ void serve_static(int fd, char *filename, int filesize)
   printf("Response headers: \n");
   printf("%s", buf);
 
-
   // /* Send response body to client */
   // srcfd = Open(filename, O_RDONLY, 0);  // filename의 이름을 갖는 파일을 읽기 권한으로 불러온다.
   // srcp = Mmap(0, filesize, PROT_READ, MAP_PRIVATE, srcfd, 0); // 메모리에 파일 내용을 동적할당한다.
@@ -205,12 +205,14 @@ void serve_static(int fd, char *filename, int filesize)
   // Munmap(srcp, filesize);               // 할당된 메모리 공간을 해제한다.
 
   // Homework 11.9: 정적 컨텐츠 처리할 때 요청 파일 malloc, rio_readn, rio_writen 사용하여 연결 식별자에게 복사
-  srcfd = Open(filename, O_RDONLY, 0);  // filename의 이름을 갖는 파일을 읽기 권한으로 불러온다.
-  srcp = (char *)malloc(filesize);
-  rio_readn(srcfd, srcp, filesize);
-  Close(srcfd);
-  rio_writen(fd, srcp, filesize);
-  free(srcp);
+  if (strcasecmp(method, "GET") == 0){
+    srcfd = Open(filename, O_RDONLY, 0);  // filename의 이름을 갖는 파일을 읽기 권한으로 불러온다.
+    srcp = (char *)malloc(filesize);
+    rio_readn(srcfd, srcp, filesize);
+    Close(srcfd);
+    rio_writen(fd, srcp, filesize);
+    free(srcp);
+  }
 }
 
 /*get_filetype - Derive file type from filename */
@@ -232,7 +234,7 @@ void get_filetype(char *filename, char *filetype)
     strcpy(filetype, "text/plain");
 }
 
-void serve_dynamic(int fd, char *filename, char *cgiargs)
+void serve_dynamic(int fd, char *filename, char *cgiargs, char *method)
 { 
   // fork(): 함수를 호출한 프로세스를 복사하는 기능
   // 부모 프로세스(원래 진행되던 프로세스), 자식 프로세스(복사된 프로세스)
