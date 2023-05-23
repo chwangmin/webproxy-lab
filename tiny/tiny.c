@@ -98,7 +98,7 @@ void clienterror(int fd, char *cause, char *errnum, char *shortmsg, char *longms
   sprintf(body, "%s<hr><em>The Tiny Web Server</em>\r\n", body);
 
   /* Print the HTTP response */
-  sprintf(buf, "HTTP/1.0 %s %s\r\n", errnum, shortmsg);
+  sprintf(buf, "HTTP/1.1 %s %s\r\n", errnum, shortmsg);
   Rio_writen(fd, buf, strlen(buf));
   sprintf(buf, "Content-type: text/html\r\n");
   Rio_writen(fd, buf, strlen(buf));
@@ -132,7 +132,7 @@ int parse_uri(char *uri, char *filename, char *cgiargs)
   /* uri에 cgi-bin이 없다면, 즉 정적 컨텐츠를 요청한다면 1을 리턴한다. */
 
   // 예시
-  // Request Line: GET /godzilla.jpg HTTP/1.1
+  // Request Line: GET /godzilla.jpg HTTP/1.0
   // uri: /godzilla.jpg
   // cgiargs: x(없음)
   // filename: ./home.html
@@ -185,7 +185,7 @@ void serve_static(int fd, char *filename, int filesize)
 
   /* Send response headers to client */
   get_filetype(filename, filetype);                         // 파일 이름의 접미어 부분 검사 => 파일 타입 결정
-  sprintf(buf, "HTTP/1.0 200 OK\r\n");                      // 응답 라인 작성
+  sprintf(buf, "HTTP/1.1 200 OK\r\n");                      // 응답 라인 작성
   sprintf(buf, "%sServer: Tiny Web Server\r\n", buf);       // 응답 헤더 작성
   sprintf(buf, "%sConnections: close\r\n", buf);
   sprintf(buf, "%sContent-length: %d\r\n", buf, filesize);
@@ -241,7 +241,7 @@ void serve_dynamic(int fd, char *filename, char *cgiargs)
   char buf[MAXLINE], *emptylist[] = {NULL};
 
   /* Return first part of HTTP response */
-  sprintf(buf, "HTTP/1.0 200 OK\r\n");
+  sprintf(buf, "HTTP/1.1 200 OK\r\n");
   Rio_writen(fd, buf, strlen(buf));
   sprintf(buf, "Server: Tiny Web Server\r\n");
   Rio_writen(fd, buf, strlen(buf));
