@@ -62,7 +62,7 @@ void doit(int fd) {
   }
 
 
-  read_requesthdrs(&rio); 
+  //read_requesthdrs(&rio); // 이것 때문에 Server가 무한 반복함.
 
   /* Parse URI from GET request */
   is_static = parse_uri(uri, filename, cgiargs);
@@ -251,7 +251,8 @@ void serve_dynamic(int fd, char *filename, char *cgiargs, char *method)
   { 
     /* Return first part of HTTP response */
     // 환경변수를 cigarg로 바꿔주겠다 0: 기존 값 쓰겠다 . 1: cigargs 
-    setenv("QUERY_STRING", cgiargs, 1);   
+    setenv("QUERY_STRING", cgiargs, 1);
+    setenv("REQUEST_METHOD", method, 1);   
     // old file descriptor, new file descriptor
     // 화면에 출력할 수 있게끔 띄워주겠다 .
     Dup2(fd, STDOUT_FILENO);              // Redirect stdout to clinet

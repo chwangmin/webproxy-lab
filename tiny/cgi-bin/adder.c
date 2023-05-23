@@ -18,9 +18,9 @@ int main(void) {
     strcpy(arg2, arg);
 
     char *delimiter = "=";
-    char *tmp_token = strtok(arg1, delimiter);
+    char *token = strtok(arg1, delimiter);
     n1 = atoi(strtok(NULL, delimiter));
-    tmp_token = strtok(arg2, delimiter);
+    *token = strtok(arg2, delimiter);
     n2 = atoi(strtok(NULL, delimiter));
   }
 
@@ -37,7 +37,10 @@ int main(void) {
   printf("Connection: close\r\n");
   printf("Connection-length: %d\r\n", (int)strlen(content));
   printf("Connection-type: text/html\r\n\r\n");
-  printf("%s", content);
+
+  if (strcasecmp((buf = getenv("REQUEST_METHOD")), "GET") == 0)
+    printf("%s", content);
+  
   fflush(stdout);
 
   exit(0);
