@@ -223,12 +223,10 @@ void get_filetype(char *filename, char *filetype)
     strcpy(filetype, "image/png");
   else if (strstr(filename, ".jpg"))
     strcpy(filetype, "image/jpeg");
-
-  // Homework 11.7: html5 not supporting "mpg file format"
   else if (strstr(filename, ".mpg"))
-    strcpy(filetype, "video/mpg");
+    strcpy(filetype, "video/mpg"); // homework 11.7 mpg_video
   else if (strstr(filename, ".mp4"))
-    strcpy(filetype, "video/mp4");
+    strcpy(filetype, "video/mp4"); 
   else
     strcpy(filetype, "text/plain");
 }
