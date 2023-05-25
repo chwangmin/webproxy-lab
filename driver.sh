@@ -9,12 +9,10 @@
 # 
 #     usage: ./driver.sh
 # 
-
 # Point values
 MAX_BASIC=40
 MAX_CONCURRENCY=15
 MAX_CACHE=15
-
 # Various constants
 HOME_DIR=`pwd`
 PROXY_DIR="./.proxy"
@@ -24,62 +22,54 @@ MAX_RAND=63000
 PORT_START=1024
 PORT_MAX=65000
 MAX_PORT_TRIES=10
-
 # List of text and binary files for the basic test
 BASIC_LIST="home.html
             csapp.c
             tiny.c
             godzilla.jpg
             tiny"
-
 # List of text files for the cache test
 CACHE_LIST="tiny.c
             home.html
             csapp.c"
-
 # The file we will fetch for various tests
 FETCH_FILE="home.html"
-
 #####
 # Helper functions
 #
-
 #
 # download_proxy - download a file from the origin server via the proxy
 # usage: download_proxy <testdir> <filename> <origin_url> <proxy_url>
 #
-function download_proxy {
-    cd $1
+function download_proxy
+{   cd $1
     curl --max-time ${TIMEOUT} --silent --proxy $4 --output $2 $3
     (( $? == 28 )) && echo "Error: Fetch timed out after ${TIMEOUT} seconds"
     cd $HOME_DIR
 }
-
 #
 # download_noproxy - download a file directly from the origin server
 # usage: download_noproxy <testdir> <filename> <origin_url>
 #
-function download_noproxy {
-    cd $1
+function download_noproxy
+{   cd $1
     curl --max-time ${TIMEOUT} --silent --output $2 $3 
     (( $? == 28 )) && echo "Error: Fetch timed out after ${TIMEOUT} seconds"
     cd $HOME_DIR
 }
-
 #
 # clear_dirs - Clear the download directories
 #
-function clear_dirs {
-    rm -rf ${PROXY_DIR}/*
+function clear_dirs 
+{   rm -rf ${PROXY_DIR}/*
     rm -rf ${NOPROXY_DIR}/*
 }
-
 #
 # wait_for_port_use - Spins until the TCP port number passed as an
 #     argument is actually being used. Times out after 5 seconds.
 #
-function wait_for_port_use() {
-    timeout_count="0"
+function wait_for_port_use() 
+{   timeout_count="0"
     portsinuse=`netstat --numeric-ports --numeric-hosts -a --protocol=tcpip \
         | grep tcp | cut -c21- | cut -d':' -f2 | cut -d' ' -f1 \
         | grep -E "[0-9]+" | uniq | tr "\n" " "`
@@ -99,8 +89,6 @@ function wait_for_port_use() {
         echo "${portsinuse}" | grep -wq "${1}"
     done
 }
-
-
 #
 # free_port - returns an available unused TCP port 
 #
@@ -298,7 +286,7 @@ wait_for_port_use "${proxy_port}"
 # Run a special blocking nop-server that never responds to requests
 nop_port=$(free_port)
 echo "Starting the blocking NOP server on port ${nop_port}"
-./nop-server.py ${nop_port} &> /dev/null &
+python3 ./nop-server.py ${nop_port} &> /dev/null &
 nop_pid=$!
 
 # Wait for the nop server to start in earnest
